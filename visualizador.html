@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Dice • RPG Distribuições</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #0f0f2d 50%, #1a0a2e 100%);
+            color: #e0d0ff;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(100, 50, 200, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 50, 200, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #b088ff 0%, #7b3fe4 40%, #a855f7 60%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #9880c5;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Upload */
+        .upload-wrapper {
+            margin-bottom: 28px;
+        }
+
+        .upload-area {
+            background: rgba(20, 15, 40, 0.5);
+            backdrop-filter: blur(15px);
+            border: 2px dashed rgba(140, 80, 255, 0.25);
+            border-radius: 20px;
+            padding: 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: #7b3fe4;
+            background: rgba(30, 20, 60, 0.6);
+            box-shadow: 0 0 30px rgba(100, 50, 200, 0.15);
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #b088ff;
+            margin-bottom: 6px;
+        }
+
+        .upload-hint {
+            color: #6b4f8c;
+            font-size: 0.85rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .search-wrapper {
+            flex: 1;
+            min-width: 280px;
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7b3fe4;
+            font-size: 16px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 13px 16px 13px 46px;
+            background: rgba(20, 15, 40, 0.5);
+            border: 1px solid rgba(100, 50, 200, 0.2);
+            border-radius: 40px;
+            color: #e0d0ff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-box:focus {
+            border-color: #7b3fe4;
+            background: rgba(30, 20, 60, 0.6);
+        }
+
+        .search-box::placeholder {
+            color: #5a4a7a;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 18px;
+            background: rgba(20, 15, 40, 0.4);
+            border: 1px solid rgba(100, 50, 200, 0.15);
+            border-radius: 40px;
+            color: #9880c5;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
+        }
+
+        .filter-btn:hover {
+            background: rgba(80, 40, 160, 0.3);
+            border-color: #7b3fe4;
+            color: #b088ff;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #7b3fe4, #6366f1);
+            border-color: transparent;
+            color: white;
+        }
+
+        /* Stats */
+        .stats-mini {
+            display: flex;
+            justify-content: center;
+            gap: 36px;
+            margin-bottom: 28px;
+            padding: 16px 28px;
+            background: rgba(20, 15, 40, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            border: 1px solid rgba(100, 50, 200, 0.1);
+        }
+
+        .stat-mini-item {
+            text-align: center;
+        }
+
+        .stat-mini-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #b088ff, #7b3fe4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .stat-mini-label {
+            color: #8068b0;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 20px;
+        }
+
+        .chart-card {
+            background: rgba(15, 10, 30, 0.4);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(100, 50, 200, 0.12);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(80, 0, 160, 0.15);
+            border-color: rgba(120, 60, 220, 0.25);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #c0a0ff, #9f7aea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .chart-stats {
+            display: flex;
+            gap: 16px;
+        }
+
+        .chart-stat {
+            text-align: right;
+        }
+
+        .chart-stat-value {
+            font-weight: 700;
+            color: #b088ff;
+            font-size: 0.95rem;
+        }
+
+        .chart-stat-label {
+            font-size: 0.65rem;
+            color: #6b4f8c;
+            text-transform: uppercase;
+        }
+
+        .chart-wrapper {
+            height: 230px;
+            width: 100%;
+        }
+
+        /* States */
+        .empty-state, .loading-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 40px;
+            background: rgba(20, 15, 40, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            border: 1px solid rgba(100, 50, 200, 0.1);
+        }
+
+        .state-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+
+        .empty-state p, .loading-state p {
+            color: #9880c5;
+            font-size: 1.1rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(100, 50, 200, 0.3);
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 16px; }
+            h1 { font-size: 2.2rem; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .stats-mini { gap: 20px; }
+            .stat-mini-value { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Análise de Dados RPG</h1>
+            <p class="subtitle">Distribuições Probabilísticas</p>
+        </div>
+
+        <div class="upload-wrapper">
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📂</div>
+                <div class="upload-text">Selecionar Arquivo JSON</div>
+                <div class="upload-hint">todas_combinacoes.json ou qualquer arquivo gerado</div>
+            </div>
+            <input type="file" id="fileInput" accept=".json">
+        </div>
+
+        <div class="controls">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-box" id="searchInput" placeholder="Buscar combinação... (ex: 1d4+1d6 ou 3d8)">
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="1">1 dado</button>
+                <button class="filter-btn" data-filter="2">2 dados</button>
+                <button class="filter-btn" data-filter="3">3 dados</button>
+                <button class="filter-btn" data-filter="4">4 dados</button>
+                <button class="filter-btn" data-filter="5">5 dados</button>
+                <button class="filter-btn" data-filter="6">6+ dados</button>
+            </div>
+        </div>
+
+        <div class="stats-mini" id="statsMini" style="display: none;">
+            <div class="stat-mini-item">
+                <div class="stat-mini-value" id="totalCount">0</div>
+                <div class="stat-mini-label">Combinações</div>
+            </div>
+            <div class="stat-mini-item">
+                <div class="stat-mini-value" id="avgCombos">0</div>
+                <div class="stat-mini-label">Média</div>
+            </div>
+            <div class="stat-mini-item">
+                <div class="stat-mini-value" id="maxCombos">0</div>
+                <div class="stat-mini-label">Máximo</div>
+            </div>
+        </div>
+
+        <div id="chartsContainer">
+            <div class="empty-state">
+                <div class="state-icon">🎲</div>
+                <p>Carregue um arquivo JSON para visualizar os gráficos</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allData = {};
+        let charts = [];
+        let currentFilter = 'all';
+        let searchTerm = '';
+
+        const fileInput = document.getElementById('fileInput');
+        const searchInput = document.getElementById('searchInput');
+        const chartsContainer = document.getElementById('chartsContainer');
+        const statsMini = document.getElementById('statsMini');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        // Debounce para busca
+        function debounce(func, wait) {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        fileInput.addEventListener('change', handleFileSelect);
+        searchInput.addEventListener('input', debounce(() => {
+            searchTerm = searchInput.value.toLowerCase();
+            renderCharts();
+        }, 250));
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderCharts();
+            });
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    allData = JSON.parse(e.target.result);
+                    updateStats();
+                    renderCharts();
+                } catch (error) {
+                    chartsContainer.innerHTML = `<div class="empty-state"><div class="state-icon">⚠️</div><p>Erro ao ler JSON: ${error.message}</p></div>`;
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function updateStats() {
+            const entries = Object.entries(allData);
+            if (entries.length === 0) {
+                statsMini.style.display = 'none';
+                return;
+            }
+
+            let totalCombos = 0;
+            let maxCombos = 0;
+
+            entries.forEach(([_, data]) => {
+                const combos = data.estatisticas?.total_combinacoes || 0;
+                totalCombos += combos;
+                maxCombos = Math.max(maxCombos, combos);
+            });
+
+            const avg = Math.round(totalCombos / entries.length);
+
+            document.getElementById('totalCount').textContent = entries.length;
+            document.getElementById('avgCombos').textContent = avg.toLocaleString();
+            document.getElementById('maxCombos').textContent = maxCombos.toLocaleString();
+            statsMini.style.display = 'flex';
+        }
+
+        function filterData() {
+            const filtered = {};
+            
+            Object.entries(allData).forEach(([name, data]) => {
+                if (searchTerm && !name.toLowerCase().includes(searchTerm)) return;
+
+                const numDados = (name.match(/\+/g) || []).length + 1;
+                
+                if (currentFilter === 'all') {
+                    filtered[name] = data;
+                } else if (currentFilter === '6' && numDados >= 6) {
+                    filtered[name] = data;
+                } else if (parseInt(currentFilter) === numDados) {
+                    filtered[name] = data;
+                }
+            });
+
+            return filtered;
+        }
+
+        function destroyCharts() {
+            charts.forEach(chart => chart.destroy());
+            charts = [];
+        }
+
+        function renderCharts() {
+            destroyCharts();
+            
+            const filteredData = filterData();
+            const entries = Object.entries(filteredData);
+            
+            if (entries.length === 0) {
+                chartsContainer.innerHTML = `<div class="empty-state"><div class="state-icon">🔍</div><p>Nenhuma combinação encontrada</p></div>`;
+                return;
+            }
+
+            entries.sort((a, b) => {
+                const numA = (a[0].match(/\+/g) || []).length + 1;
+                const numB = (b[0].match(/\+/g) || []).length + 1;
+                if (numA !== numB) return numA - numB;
+                return a[0].localeCompare(b[0]);
+            });
+
+            // Cria grid
+            const grid = document.createElement('div');
+            grid.className = 'charts-grid';
+            
+            // Cria cards (apenas HTML, sem inicializar gráficos ainda)
+            const canvasIds = [];
+            
+            entries.forEach(([name, data]) => {
+                const stats = data.estatisticas || {};
+                const canvasId = 'chart_' + Math.random().toString(36).substr(2, 9);
+                canvasIds.push({ id: canvasId, name, data });
+                
+                const card = document.createElement('div');
+                card.className = 'chart-card';
+                card.innerHTML = `
+                    <div class="chart-header">
+                        <div class="chart-title">${name}</div>
+                        <div class="chart-stats">
+                            <div class="chart-stat">
+                                <div class="chart-stat-value">${stats.total_combinacoes?.toLocaleString() || '0'}</div>
+                                <div class="chart-stat-label">combos</div>
+                            </div>
+                            <div class="chart-stat">
+                                <div class="chart-stat-value">${stats.media || '0'}</div>
+                                <div class="chart-stat-label">média</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="${canvasId}"></canvas>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            chartsContainer.innerHTML = '';
+            chartsContainer.appendChild(grid);
+            
+            // Inicializa gráficos com um pequeno delay para não travar a UI
+            requestAnimationFrame(() => {
+                canvasIds.forEach(({ id, name, data }) => {
+                    const canvas = document.getElementById(id);
+                    if (canvas) {
+                        createChart(canvas, data);
+                    }
+                });
+            });
+        }
+
+        function createChart(canvas, data) {
+            const dist = data.distribuicao || {};
+            const stats = data.estatisticas || {};
+            
+            const labels = Object.keys(dist).sort((a, b) => parseInt(a) - parseInt(b));
+            const values = labels.map(k => dist[k]);
+            
+            const ctx = canvas.getContext('2d');
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, 230);
+            gradient.addColorStop(0, '#a064ff');
+            gradient.addColorStop(0.5, '#783fe4');
+            gradient.addColorStop(1, '#501eb4');
+            
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: gradient,
+                        borderColor: '#b088ff',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1a0a2e',
+                            titleColor: '#c0a0ff',
+                            bodyColor: '#e0d0ff',
+                            borderColor: '#7b3fe4',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.parsed.y;
+                                    const total = stats.total_combinacoes || 1;
+                                    const percent = ((value / total) * 100).toFixed(2);
+                                    return `${value.toLocaleString()} (${percent}%)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(120, 80, 180, 0.08)' },
+                            ticks: { 
+                                color: '#9880c5',
+                                callback: (value) => value >= 1000 ? (value/1000).toFixed(0) + 'k' : value
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { 
+                                color: '#9880c5',
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 8
+                            }
+                        }
+                    }
+                }
+            });
+            
+            charts.push(chart);
+        }
+
+        // Tenta carregar arquivo padrão
+        async function loadDefault() {
+            try {
+                const response = await fetch('todas_combinacoes.json');
+                if (response.ok) {
+                    allData = await response.json();
+                    updateStats();
+                    renderCharts();
+                }
+            } catch (error) {
+                console.log('Arquivo padrão não encontrado');
+            }
+        }
+
+        loadDefault();
+    </script>
+</body>
+</html>
